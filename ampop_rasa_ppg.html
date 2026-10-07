@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="id" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ampop Rasa - Jurnal Refleksi Emosional Privat PPG</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pastel: {
+                            pink: '#FFF1F2',
+                            peach: '#FFEDD5',
+                            yellow: '#FEF9C3',
+                            green: '#F0FDF4',
+                            blue: '#EFF6FF',
+                            purple: '#F3E8FF',
+                            rose: '#FFE4E6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Font Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fdf2f8 0%, #f3e8ff 50%, #eff6ff 100%);
+            min-height: 100vh;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 160px;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-700 flex flex-col justify-between selection:bg-pink-200 selection:text-pink-800">
+
+    <!-- Header / Navbar -->
+    <header class="w-full bg-white/80 backdrop-blur-md border-b border-pink-100 sticky top-0 z-50 px-4 py-3 shadow-sm">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <span class="text-2xl">💌</span>
+                <div>
+                    <h1 class="font-bold text-pink-600 text-base leading-tight">Ampop Rasa</h1>
+                    <p class="text-[10px] text-slate-400 font-medium">Inovasi Pembelajaran SEL • PPG</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-2">
+                <button id="navMyDiaryBtn" onclick="app.switchTab('diary')" class="px-3 py-1.5 text-xs font-semibold rounded-full bg-pink-100 text-pink-700 transition active:scale-95 shadow-sm">
+                    Isi Hati ✍️
+                </button>
+                <button id="navTeacherBtn" onclick="app.promptTeacherPin()" class="px-3 py-1.5 text-xs font-medium rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition active:scale-95">
+                    Guru 👩‍🏫
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-md w-full mx-auto p-4 pb-24 overflow-y-auto">
+
+        <!-- VIEW 1: HOME / LIST / UNLOCK PIN -->
+        <div id="viewHome" class="space-y-5">
+            <!-- Hero Banner -->
+            <div class="bg-gradient-to-r from-pink-500 to-rose-400 rounded-2xl p-5 text-white shadow-md relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 text-7xl opacity-20">🕊️</div>
+                <h2 class="text-lg font-bold">Ruang Aman Suaramu ✨</h2>
+                <p class="text-xs text-pink-100 mt-1 leading-relaxed">
+                    Curahkan isi hatimu secara leluasa dan mendalam hari ini. Dilindungi PIN pribadi, guru siap mendengarkan tanpa menghakimi!
+                </p>
+                <button onclick="app.startNewEntry()" class="mt-4 bg-white text-pink-600 font-semibold px-4 py-2 rounded-xl text-xs shadow hover:bg-pink-50 active:scale-95 transition flex items-center space-x-1.5">
+                    <span>➕ Tulis Surat Ampop Rasa Baru</span>
+                </button>
+            </div>
+
+            <!-- Security Badge Info -->
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-start space-x-3 text-xs text-blue-800">
+                <span class="text-lg">🔒</span>
+                <div>
+                    <span class="font-semibold block">100% Privat di HP Kamu</span>
+                    Catatan panjang ini dikunci dengan PIN 4-digit buatanmu. Bebas menulis cerita seluas-luasnya tanpa takut diintip orang lain!
+                </div>
+            </div>
+
+            <!-- Daftar Catatan Hati Tersimpan -->
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <h3 class="font-bold text-sm text-slate-700">Arsip Ampop Rasa Ku 🗂️</h3>
+                    <span id="entryCountBadge" class="text-xs bg-pink-100 text-pink-700 font-semibold px-2 py-0.5 rounded-full">0 surat</span>
+                </div>
+                
+                <div id="entriesListContainer" class="space-y-3">
+                    <!-- Dynamic List loaded via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: FORM TULIS / EDIT CURHAT (EXTENDED TEXTAREA) -->
+        <div id="viewForm" class="space-y-4 hidden">
+            <div class="flex items-center justify-between mb-2">
+                <button onclick="app.switchTab('home')" class="text-xs text-slate-500 hover:text-slate-800 flex items-center space-x-1 font-medium">
+                    <span>← Kembali</span>
+                </button>
+                <h2 class="font-bold text-sm text-pink-600">Tulis Ampop Perasaan</h2>
+            </div>
+
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-pink-100 space-y-4">
+                <!-- 1. Mood Selector -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-2">1. Bagaimana suasana hatimu saat belajar hari ini? *</label>
+                    <div class="grid grid-cols-4 gap-2" id="moodGrid">
+                        <!-- Rendered by JS -->
+                    </div>
+                </div>
+
+                <!-- 2. Nama / Anonim -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">2. Identitas Pengirim Surat</label>
+                    <div class="flex space-x-2 mt-1">
+                        <button type="button" id="anonBtn" onclick="app.setAnonymous(true)" class="flex-1 py-2 text-xs font-medium rounded-xl border transition active:scale-95 bg-pink-500 text-white border-pink-500">
+                            🕵️ Rahasia (Anonim)
+                        </button>
+                        <button type="button" id="namedBtn" onclick="app.setAnonymous(false)" class="flex-1 py-2 text-xs font-medium rounded-xl border transition active:scale-95 bg-white text-slate-600 border-slate-200">
+                            🏷️ Pakai Nama
+                        </button>
+                    </div>
+                    <div id="nameInputWrapper" class="mt-2 hidden">
+                        <input type="text" id="studentNameInput" placeholder="Nama Lengkap / Panggilan & Kelas" class="w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-400 bg-slate-50">
+                    </div>
+                </div>
+
+                <!-- 3. Mata Pelajaran / Topik -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">3. Mata Pelajaran / Topik Pembelajaran</label>
+                    <input type="text" id="subjectInput" placeholder="Contoh: Matematika, IPA, Seni Budaya..." class="w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-400 bg-slate-50">
+                </div>
+
+                <!-- 4. Isi Curhat Panjang -->
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-bold text-slate-600">4. Tuliskan Cerita, Keluh Kesah, atau Harapanmu *</label>
+                        <span id="wordCountIndicator" class="text-[10px] text-slate-400 font-medium">0 kata</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mb-2">Tulis seluas dan sepanjang yang kamu mau. Ruang ini aman untuk mencurahkan semua yang kamu rasakan tanpa batasan.</p>
+                    <textarea id="storyInput" oninput="app.updateWordCount()" placeholder="Ceritakan secara mendalam... Apa bagian paling menarik atau paling sulit hari ini? Bagaimana perasaanmu menghadapi tugas atau materi tersebut? Tuliskan semuanya dengan leluasa di sini..." class="w-full text-xs p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-400 bg-slate-50 leading-relaxed"></textarea>
+                </div>
+
+                <!-- 5. Pesan Khusus untuk Guru -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">5. Pesan Khusus untuk Ibu/Bapak Guru (Opsional)</label>
+                    <input type="text" id="messageToTeacherInput" placeholder="Contoh: Mohon bimbingan lebih sabar ya Pak/Bu..." class="w-full text-xs px-3 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-pink-400 bg-slate-50">
+                </div>
+
+                <!-- 6. PIN Keamanan 4 Digit -->
+                <div class="bg-pink-50/50 p-3.5 rounded-xl border border-pink-100">
+                    <label class="block text-xs font-bold text-pink-800 mb-1">🔑 Buat PIN 4-Digit Pengaman Ampop Ini</label>
+                    <p class="text-[10px] text-slate-500 mb-2">PIN angka ini wajib diingat agar surat panjangmu tetap rahasia saat HP dipegang teman atau orang lain.</p>
+                    <input type="password" maxlength="4" inputmode="numeric" id="entryPinInput" placeholder="••••" class="w-32 text-center text-lg tracking-widest font-bold px-3 py-2 rounded-xl border border-pink-200 focus:outline-none focus:border-pink-500 bg-white">
+                </div>
+
+                <button onclick="app.saveEntry()" class="w-full py-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white font-bold rounded-xl text-xs shadow hover:opacity-95 active:scale-95 transition">
+                    💌 Segel & Masukkan ke Ampop Rasa
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 3: DETAIL / READ ENTRY (PIN PROTECTED) -->
+        <div id="viewDetail" class="space-y-4 hidden">
+            <div class="flex items-center justify-between">
+                <button onclick="app.switchTab('home')" class="text-xs text-slate-500 hover:text-slate-800 font-medium">
+                    ← Kembali ke Daftar
+                </button>
+                <button onclick="app.deleteCurrentEntry()" class="text-xs text-rose-500 hover:text-rose-700 font-medium bg-rose-50 px-2.5 py-1 rounded-lg">
+                    🗑️ Hapus
+                </button>
+            </div>
+
+            <!-- PIN Unlock Box -->
+            <div id="detailPinLockBox" class="bg-white rounded-2xl p-6 shadow-sm border border-pink-100 text-center space-y-4">
+                <div class="text-4xl">🔐</div>
+                <h3 class="font-bold text-sm text-slate-700">Surat Panjang Ini Terkunci PIN</h3>
+                <p class="text-xs text-slate-400">Masukkan PIN 4-digit yang kamu buat untuk membuka dan membaca kembali isi surat ini.</p>
+                <div class="flex justify-center">
+                    <input type="password" maxlength="4" inputmode="numeric" id="unlockPinInput" placeholder="••••" class="w-36 text-center text-xl tracking-widest font-bold px-3 py-2 rounded-xl border border-pink-300 focus:outline-none focus:border-pink-500 bg-pink-50">
+                </div>
+                <button onclick="app.verifyUnlockPin()" class="w-full py-2.5 bg-pink-500 text-white font-semibold rounded-xl text-xs shadow hover:bg-pink-600">
+                    Buka Ampop Surat
+                </button>
+            </div>
+
+            <!-- Actual Content Card -->
+            <div id="detailContentCard" class="bg-white rounded-2xl p-5 shadow-sm border border-pink-100 space-y-4 hidden">
+                <div class="flex justify-between items-start border-b border-slate-100 pb-3">
+                    <div class="flex items-center space-x-2.5">
+                        <div id="detailMoodEmoji" class="text-3xl p-2 bg-pink-50 rounded-2xl">😊</div>
+                        <div>
+                            <span id="detailMoodName" class="font-bold text-sm text-slate-800 block">Senang</span>
+                            <span id="detailDate" class="text-[10px] text-slate-400">12 Oktober 2026</span>
+                        </div>
+                    </div>
+                    <span id="detailSenderBadge" class="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">Anonim</span>
+                </div>
+
+                <div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Mata Pelajaran / Topik</span>
+                    <p id="detailSubject" class="text-xs font-semibold text-slate-700">-</p>
+                </div>
+
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Isi Curhat & Refleksi Panjang</span>
+                        <span id="detailWordCount" class="text-[10px] text-pink-600 font-semibold">0 kata</span>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 max-h-96 overflow-y-auto">
+                        <p id="detailStory" class="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">-</p>
+                    </div>
+                </div>
+
+                <div id="detailTeacherNoteWrapper" class="hidden">
+                    <span class="text-[10px] font-bold text-pink-500 uppercase tracking-wider block mb-1">Pesan untuk Guru</span>
+                    <p id="detailTeacherNote" class="text-xs text-pink-800 italic bg-pink-50 p-3 rounded-xl">-</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 4: TEACHER DASHBOARD (PIN PROTECTED) -->
+        <div id="viewTeacher" class="space-y-4 hidden">
+            <div class="flex items-center justify-between mb-2">
+                <button onclick="app.switchTab('home')" class="text-xs text-slate-500 hover:text-slate-800 font-medium">
+                    ← Keluar Dashboard Guru
+                </button>
+                <h2 class="font-bold text-sm text-indigo-600">Dashboard Refleksi Guru (PPG)</h2>
+            </div>
+
+            <!-- PIN Prompt / Auth for Teacher -->
+            <div id="teacherAuthBox" class="bg-white rounded-2xl p-6 shadow-sm border border-indigo-100 text-center space-y-4">
+                <div class="text-4xl">👩‍🏫</div>
+                <h3 class="font-bold text-sm text-slate-700">Autentikasi Guru / Fasilitator PPG</h3>
+                <p class="text-xs text-slate-400">Masukkan PIN khusus guru untuk memantau tren emosi kelas dan membaca refleksi mendalam siswa secara bijak.</p>
+                <div class="flex justify-center">
+                    <input type="password" id="teacherPinInput" placeholder="PIN Guru (Default: 2026)" class="w-48 text-center text-sm font-bold px-3 py-2.5 rounded-xl border border-indigo-200 focus:outline-none focus:border-indigo-500 bg-indigo-50/50">
+                </div>
+                <button onclick="app.verifyTeacherPin()" class="w-full py-2.5 bg-indigo-600 text-white font-semibold rounded-xl text-xs shadow hover:bg-indigo-700">
+                    Masuk Dashboard
+                </button>
+            </div>
+
+            <!-- Teacher Dashboard Content -->
+            <div id="teacherDashboardContent" class="space-y-4 hidden">
+                <!-- Summary Stats -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-white p-4 rounded-2xl border border-indigo-50 shadow-sm text-center">
+                        <span class="text-2xl block mb-1">📥</span>
+                        <span id="statTotalEntries" class="text-lg font-bold text-slate-800">0</span>
+                        <span class="text-[10px] text-slate-400 block font-medium">Total Surat Masuk</span>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-indigo-50 shadow-sm text-center">
+                        <span class="text-2xl block mb-1">❤️</span>
+                        <span id="statDominantMood" class="text-xs font-bold text-pink-600 mt-1 block truncate">-</span>
+                        <span class="text-[10px] text-slate-400 block font-medium">Emosi Dominan Kelas</span>
+                    </div>
+                </div>
+
+                <!-- Emotional Breakdown Chart / List -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-indigo-50 space-y-3">
+                    <h3 class="font-bold text-xs text-slate-700">📊 Distribusi Suasana Hati Siswa</h3>
+                    <div id="moodDistributionBars" class="space-y-2">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- SEL Recommendation -->
+                <div class="bg-indigo-50 rounded-2xl p-4 border border-indigo-100 text-xs text-indigo-900 space-y-2">
+                    <div class="font-bold flex items-center space-x-1.5 text-indigo-700">
+                        <span>💡</span>
+                        <span>Rekomendasi Tindak Lanjut Diferensiasi (SEL)</span>
+                    </div>
+                    <p id="selRecommendationText" class="leading-relaxed text-slate-600">
+                        Menganalisis surat refleksi mendalam siswa...
+                    </p>
+                </div>
+
+                <!-- Teacher Reader List -->
+                <div class="bg-white rounded-2xl p-4 shadow-sm border border-indigo-50 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-bold text-xs text-slate-700">📖 Bacaan Surat & Pesan Siswa</h3>
+                        <span class="text-[10px] text-slate-400">Akses Pendidik</span>
+                    </div>
+                    <div id="teacherStoriesList" class="space-y-3 max-h-80 overflow-y-auto">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </div>
+
+                <div class="text-center pt-2">
+                    <button onclick="app.exportTeacherReport()" class="px-4 py-2 bg-indigo-50 text-indigo-600 rounded-xl text-xs font-semibold hover:bg-indigo-100 transition">
+                        📥 Unduh Laporan Lengkap (Teks)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Custom Notification Modal -->
+    <div id="customModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl max-w-xs w-full p-5 text-center shadow-xl space-y-3 transform scale-95 transition-transform" id="modalBox">
+            <div id="modalIcon" class="text-3xl">✨</div>
+            <h3 id="modalTitle" class="font-bold text-sm text-slate-800">Pemberitahuan</h3>
+            <p id="modalMessage" class="text-xs text-slate-500 leading-relaxed">Pesan sistem...</p>
+            <button onclick="app.closeModal()" class="w-full py-2 bg-pink-500 text-white rounded-xl text-xs font-semibold shadow hover:bg-pink-600">
+                Mengerti
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer Branding -->
+    <footer class="w-full py-3 text-center text-[10px] text-slate-400 bg-white/50 border-t border-pink-50 fixed bottom-0">
+        Inovasi PPG • Ampop Rasa Digital v2.0 • Aman & Konfidensial
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        class AmpopRasaApp {
+            constructor() {
+                this.storageKey = 'ampop_rasa_ppg_data_v2';
+                this.teacherPinKey = 'ampop_rasa_teacher_pin';
+                this.entries = [];
+                this.currentMood = null;
+                this.isAnonymous = true;
+                this.selectedEntryId = null;
+                
+                this.moods = [
+                    { id: 'senang', name: 'Senang', emoji: '😊', color: 'bg-emerald-50 border-emerald-200 text-emerald-700' },
+                    { id: 'tenang', name: 'Tenang', emoji: '😌', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+                    { id: 'semangat', name: 'Semangat', emoji: '🔥', color: 'bg-amber-50 border-amber-200 text-amber-700' },
+                    { id: 'lelah', name: 'Lelah', emoji: '🥱', color: 'bg-purple-50 border-purple-200 text-purple-700' },
+                    { id: 'cemas', name: 'Cemas', emoji: '😰', color: 'bg-orange-50 border-orange-200 text-orange-700' },
+                    { id: 'sedih', name: 'Sedih', emoji: '😢', color: 'bg-sky-50 border-sky-200 text-sky-700' },
+                    { id: 'marah', name: 'Marah', emoji: '😤', color: 'bg-rose-50 border-rose-200 text-rose-700' },
+                    { id: 'bingung', name: 'Bingung', emoji: '🤔', color: 'bg-yellow-50 border-yellow-200 text-yellow-700' }
+                ];
+
+                this.init();
+            }
+
+            init() {
+                this.loadFromLocalStorage();
+                this.renderMoodGrid();
+                this.renderEntriesList();
+            }
+
+            loadFromLocalStorage() {
+                try {
+                    const data = localStorage.getItem(this.storageKey);
+                    if (data) {
+                        this.entries = JSON.parse(data);
+                    } else {
+                        this.entries = [
+                            {
+                                id: 'demo-long-1',
+                                date: new Date().toISOString(),
+                                mood: 'semangat',
+                                isAnonymous: true,
+                                name: 'Anonim',
+                                subject: 'Projek Penguatan Profil Pelajar Pancasila (P5)',
+                                story: 'Hari ini kegiatan kelompok P5 sangat menyenangkan karena kami bisa berdiskusi membuat kerajinan dari bahan daur ulang. Meskipun sempat ada perbedaan pendapat mengenai desain bentuk vas bunga, akhirnya kami bisa menyelesaikannya bersama-sama melalui musyawarah. Saya merasa sangat bangga dengan kerja sama tim kami hari ini.',
+                                teacherNote: 'Terima kasih Bapak/Ibu Guru sudah membimbing kelompok kami dengan penuh kesabaran.',
+                                pin: '1234'
+                            }
+                        ];
+                        this.saveToLocalStorage();
+                    }
+                } catch (e) {
+                    this.entries = [];
+                }
+            }
+
+            saveToLocalStorage() {
+                try {
+                    localStorage.setItem(this.storageKey, JSON.stringify(this.entries));
+                } catch (e) {
+                    this.showModal('Penyimpanan Penuh', 'Gagal menyimpan data ke perangkat.', '⚠️');
+                }
+            }
+
+            renderMoodGrid() {
+                const grid = document.getElementById('moodGrid');
+                grid.innerHTML = this.moods.map(m => `
+                    <button type="button" onclick="app.selectMood('${m.id}')" id="mood-btn-${m.id}" class="flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition active:scale-95 bg-slate-50 border-slate-100 hover:border-pink-300">
+                        <span class="text-2xl mb-1">${m.emoji}</span>
+                        <span class="text-[10px] font-semibold text-slate-600">${m.name}</span>
+                    </button>
+                `).join('');
+            }
+
+            selectMood(moodId) {
+                this.currentMood = moodId;
+                this.moods.forEach(m => {
+                    const btn = document.getElementById(`mood-btn-${m.id}`);
+                    if (m.id === moodId) {
+                        btn.className = "flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition active:scale-95 bg-pink-100 border-pink-500 shadow-sm ring-2 ring-pink-200";
+                    } else {
+                        btn.className = "flex flex-col items-center justify-center p-2.5 rounded-2xl border-2 transition active:scale-95 bg-slate-50 border-slate-100 hover:border-pink-300";
+                    }
+                });
+            }
+
+            setAnonymous(status) {
+                this.isAnonymous = status;
+                const anonBtn = document.getElementById('anonBtn');
+                const namedBtn = document.getElementById('namedBtn');
+                const nameWrapper = document.getElementById('nameInputWrapper');
+
+                if (status) {
+                    anonBtn.className = "flex-1 py-2 text-xs font-medium rounded-xl border transition active:scale-95 bg-pink-500 text-white border-pink-500";
+                    namedBtn.className = "flex-1 py-2 text-xs font-medium rounded-xl border transition active:scale-95 bg-white text-slate-600 border-slate-200";
+                    nameWrapper.classList.add('hidden');
+                } else {
+                    namedBtn.className = "flex-1 py-2 text-xs font-medium rounded-xl border transition active:scale-95 bg-pink-500 text-white border-pink-500";
+                    anonBtn.className = "flex-1 py-2 text-xs font-medium rounded-xl border transition active:scale-95 bg-white text-slate-600 border-slate-200";
+                    nameWrapper.classList.remove('hidden');
+                }
+            }
+
+            switchTab(tabName) {
+                document.getElementById('viewHome').classList.add('hidden');
+                document.getElementById('viewForm').classList.add('hidden');
+                document.getElementById('viewDetail').classList.add('hidden');
+                document.getElementById('viewTeacher').classList.add('hidden');
+
+                if (tabName === 'home') {
+                    document.getElementById('viewHome').classList.remove('hidden');
+                    this.renderEntriesList();
+                } else if (tabName === 'form') {
+                    document.getElementById('viewForm').classList.remove('hidden');
+                    this.resetForm();
+                } else if (tabName === 'detail') {
+                    document.getElementById('viewDetail').classList.remove('hidden');
+                } else if (tabName === 'teacher') {
+                    document.getElementById('viewTeacher').classList.remove('hidden');
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+
+            startNewEntry() {
+                this.switchTab('form');
+            }
+
+            resetForm() {
+                this.currentMood = null;
+                this.renderMoodGrid();
+                this.setAnonymous(true);
+                document.getElementById('studentNameInput').value = '';
+                document.getElementById('subjectInput').value = '';
+                document.getElementById('storyInput').value = '';
+                document.getElementById('messageToTeacherInput').value = '';
+                document.getElementById('entryPinInput').value = '';
+                document.getElementById('wordCountIndicator').textContent = '0 kata';
+            }
+
+            updateWordCount() {
+                const text = document.getElementById('storyInput').value.trim();
+                const words = text === '' ? 0 : text.split(/\s+/).length;
+                document.getElementById('wordCountIndicator').textContent = `${words} kata`;
+            }
+
+            saveEntry() {
+                if (!this.currentMood) {
+                    this.showModal('Pilih Suasana Hati', 'Silakan pilih emoji perasaanmu terlebih dahulu sebelum menulis surat.', '😊');
+                    return;
+                }
+                const story = document.getElementById('storyInput').value.trim();
+                if (!story) {
+                    this.showModal('Surat Kosong', 'Tuliskan cerita, keluh kesah, atau refleksi mendalammu pada kotak teks yang disediakan.', '✍️');
+                    return;
+                }
+                const pin = document.getElementById('entryPinInput').value.trim();
+                if (pin.length !== 4 || isNaN(pin)) {
+                    this.showModal('PIN Tidak Valid', 'Mohon buat PIN pengaman 4-digit angka (contoh: 1234) agar surat panjangmu tetap aman.', '🔑');
+                    return;
+                }
+
+                let name = 'Anonim';
+                if (!this.isAnonymous) {
+                    const customName = document.getElementById('studentNameInput').value.trim();
+                    if (customName) name = customName;
+                }
+
+                const subject = document.getElementById('subjectInput').value.trim() || 'Refleksi Umum';
+                const teacherNote = document.getElementById('messageToTeacherInput').value.trim();
+
+                const newEntry = {
+                    id: 'entry-' + Date.now(),
+                    date: new Date().toISOString(),
+                    mood: this.currentMood,
+                    isAnonymous: this.isAnonymous,
+                    name: name,
+                    subject: subject,
+                    story: story,
+                    teacherNote: teacherNote,
+                    pin: pin
+                };
+
+                this.entries.unshift(newEntry);
+                this.saveToLocalStorage();
+                this.showModal('Surat Tersimpan Aman! 💌', 'Ampop rasa berisi catatan panjangmu telah disegel privat dengan PIN. Hanya kamu atau guru berwenang yang dapat membukanya.', '✨');
+                this.switchTab('home');
+            }
+
+            renderEntriesList() {
+                const container = document.getElementById('entriesListContainer');
+                const badgeCount = document.getElementById('entryCountBadge');
+                if(badgeCount) badgeCount.textContent = `${this.entries.length} surat`;
+
+                if (this.entries.length === 0) {
+                    container.innerHTML = `
+                        <div class="bg-white rounded-2xl p-6 text-center border border-pink-100 text-slate-400 space-y-2">
+                            <span class="text-3xl block">📭</span>
+                            <p class="text-xs">Belum ada ampop rasa tersimpan di HP ini.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = this.entries.map(e => {
+                    const moodObj = this.moods.find(m => m.id === e.mood) || { emoji: '😊', name: e.mood };
+                    const dateStr = new Date(e.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+                    const wordCount = e.story ? e.story.trim().split(/\s+/).length : 0;
+                    return `
+                        <div onclick="app.openDetail('${e.id}')" class="bg-white rounded-2xl p-4 shadow-sm border border-pink-100 hover:border-pink-300 transition cursor-pointer flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="text-3xl p-2.5 bg-pink-50 rounded-2xl">${moodObj.emoji}</div>
+                                <div>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="font-bold text-xs text-slate-800">${moodObj.name}</span>
+                                        <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">${e.subject}</span>
+                                    </div>
+                                    <p class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">${e.story}</p>
+                                    <span class="text-[10px] text-slate-400 mt-1 block">${dateStr} • ${wordCount} kata • ${e.isAnonymous ? '🕵️ Rahasia' : '🏷️ ' + e.name}</span>
+                                </div>
+                            </div>
+                            <span class="text-slate-300 text-sm">🔒</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            openDetail(id) {
+                this.selectedEntryId = id;
+                const entry = this.entries.find(e => e.id === id);
+                if (!entry) return;
+
+                document.getElementById('unlockPinInput').value = '';
+                document.getElementById('detailPinLockBox').classList.remove('hidden');
+                document.getElementById('detailContentCard').classList.add('hidden');
+
+                this.switchTab('detail');
+            }
+
+            verifyUnlockPin() {
+                const inputPin = document.getElementById('unlockPinInput').value.trim();
+                const entry = this.entries.find(e => e.id === this.selectedEntryId);
+
+                if (!entry) return;
+
+                if (inputPin === entry.pin) {
+                    const moodObj = this.moods.find(m => m.id === entry.mood) || { emoji: '😊', name: entry.mood };
+                    document.getElementById('detailMoodEmoji').textContent = moodObj.emoji;
+                    document.getElementById('detailMoodName').textContent = moodObj.name;
+                    document.getElementById('detailDate').textContent = new Date(entry.date).toLocaleString('id-ID');
+                    document.getElementById('detailSubject').textContent = entry.subject;
+                    document.getElementById('detailStory').textContent = entry.story;
+                    
+                    const wordCount = entry.story ? entry.story.trim().split(/\s+/).length : 0;
+                    document.getElementById('detailWordCount').textContent = `${wordCount} kata`;
+
+                    const senderBadge = document.getElementById('detailSenderBadge');
+                    senderBadge.textContent = entry.isAnonymous ? '🕵️ Anonim' : `🏷️ ${entry.name}`;
+
+                    const teacherNoteWrapper = document.getElementById('detailTeacherNoteWrapper');
+                    if (entry.teacherNote) {
+                        teacherNoteWrapper.classList.remove('hidden');
+                        document.getElementById('detailTeacherNote').textContent = entry.teacherNote;
+                    } else {
+                        teacherNoteWrapper.classList.add('hidden');
+                    }
+
+                    document.getElementById('detailPinLockBox').classList.add('hidden');
+                    document.getElementById('detailContentCard').classList.remove('hidden');
+                } else {
+                    this.showModal('PIN Salah', 'PIN 4-digit yang kamu masukkan tidak cocok dengan surat ini.', '❌');
+                }
+            }
+
+            deleteCurrentEntry() {
+                const entry = this.entries.find(e => e.id === this.selectedEntryId);
+                if (!entry) return;
+
+                const pinPrompt = prompt("Masukkan PIN 4-digit untuk mengonfirmasi penghapusan surat ini:");
+                if (pinPrompt === entry.pin) {
+                    this.entries = this.entries.filter(e => e.id !== this.selectedEntryId);
+                    this.saveToLocalStorage();
+                    this.showModal('Berhasil Dihapus', 'Ampop rasa telah dihapus permanen dari perangkat.', '🗑️');
+                    this.switchTab('home');
+                } else if (pinPrompt !== null) {
+                    this.showModal('PIN Salah', 'Gagal menghapus karena PIN salah.', '❌');
+                }
+            }
+
+            promptTeacherPin() {
+                this.switchTab('teacher');
+                document.getElementById('teacherAuthBox').classList.remove('hidden');
+                document.getElementById('teacherDashboardContent').classList.add('hidden');
+                document.getElementById('teacherPinInput').value = '';
+            }
+
+            verifyTeacherPin() {
+                const pin = document.getElementById('teacherPinInput').value.trim();
+                const savedTeacherPin = localStorage.getItem(this.teacherPinKey) || '2026';
+
+                if (pin === savedTeacherPin) {
+                    document.getElementById('teacherAuthBox').classList.add('hidden');
+                    document.getElementById('teacherDashboardContent').classList.remove('hidden');
+                    this.renderTeacherDashboard();
+                } else {
+                    this.showModal('PIN Guru Salah', 'PIN akses khusus guru tidak valid. (Default: 2026)', '👩‍🏫');
+                }
+            }
+
+            renderTeacherDashboard() {
+                const total = this.entries.length;
+                document.getElementById('statTotalEntries').textContent = total;
+
+                if (total === 0) {
+                    document.getElementById('statDominantMood').textContent = 'Belum ada data';
+                    document.getElementById('moodDistributionBars').innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Belum ada rekapitulasi emosi.</p>';
+                    document.getElementById('teacherStoriesList').innerHTML = '<p class="text-xs text-slate-400 text-center py-4">Belum ada surat masuk.</p>';
+                    document.getElementById('selRecommendationText').textContent = 'Kumpulkan lebih banyak jurnal refleksi panjang untuk melihat tren pembelajaran sosial-emosional.';
+                    return;
+                }
+
+                const counts = {};
+                this.moods.forEach(m => counts[m.id] = 0);
+                this.entries.forEach(e => {
+                    if (counts[e.mood] !== undefined) counts[e.mood]++;
+                    else counts[e.mood] = 1;
+                });
+
+                let dominantMoodId = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+                let dominantObj = this.moods.find(m => m.id === dominantMoodId);
+                document.getElementById('statDominantMood').textContent = dominantObj ? `${dominantObj.emoji} ${dominantObj.name}` : dominantMoodId;
+
+                const barsContainer = document.getElementById('moodDistributionBars');
+                barsContainer.innerHTML = this.moods.map(m => {
+                    const count = counts[m.id] || 0;
+                    const percent = Math.round((count / total) * 100);
+                    return `
+                        <div>
+                            <div class="flex justify-between text-[11px] font-medium text-slate-600 mb-1">
+                                <span>${m.emoji} ${m.name}</span>
+                                <span>${count} siswa (${percent}%)</span>
+                            </div>
+                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                <div class="bg-indigo-500 h-full rounded-full transition-all duration-500" style="width: ${percent}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                let recText = "Berdasarkan rekapitulasi emosi kelas secara agregat: ";
+                if (['lelah', 'cemas', 'sedih', 'marah'].includes(dominantMoodId)) {
+                    recText += `Sebagian besar siswa melaporkan perasaan ${dominantObj.name}. Disarankan guru merancang pembelajaran berdiferensiasi yang menenangkan, memberikan ruang jeda emosional, serta mendengarkan curhatan mendalam siswa.`;
+                } else {
+                    recText += `Kondisi emosional kelas terpantau positif (${dominantObj.name}). Lanjutkan pendekatan interaktif yang bermakna dan apresiasi keterbukaan siswa.`;
+                }
+                document.getElementById('selRecommendationText').textContent = recText;
+
+                const storiesList = document.getElementById('teacherStoriesList');
+                storiesList.innerHTML = this.entries.map((e, idx) => {
+                    const moodObj = this.moods.find(m => m.id === e.mood) || { emoji: '😊' };
+                    const dateStr = new Date(e.date).toLocaleDateString('id-ID');
+                    const wordCount = e.story ? e.story.trim().split(/\s+/).length : 0;
+                    return `
+                        <div class="bg-indigo-50/40 p-3.5 rounded-xl border border-indigo-100 text-xs space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-700 flex items-center space-x-1.5">
+                                    <span>${moodObj.emoji}</span>
+                                    <span>${e.isAnonymous ? '🕵️ Siswa Anonim' : '🏷️ ' + e.name}</span>
+                                </span>
+                                <span class="text-[10px] text-slate-400">${dateStr} • ${wordCount} kata</span>
+                            </div>
+                            <div class="text-[10px] font-semibold text-indigo-700 bg-indigo-100/60 px-2 py-0.5 rounded inline-block">Mapel: ${e.subject}</div>
+                            <p class="text-slate-700 leading-relaxed bg-white p-3 rounded-lg border border-indigo-100/50 whitespace-pre-wrap">${e.story}</p>
+                            ${e.teacherNote ? `<p class="text-[11px] text-pink-700 italic bg-pink-50 p-2 rounded">Pesan untuk Guru: "${e.teacherNote}"</p>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            exportTeacherReport() {
+                let report = "=== LAPORAN LENGKAP REFLEKSI EMOSIONAL AMPOP RASA (PPG) ===\n";
+                report += `Tanggal Ekspor: ${new Date().toLocaleString('id-ID')}\n`;
+                report += `Total Ampop Surat Masuk: ${this.entries.length}\n\n`;
+                this.entries.forEach((e, idx) => {
+                    report += `--- SURAT #${idx + 1} ---\n`;
+                    report += `Tanggal: ${e.date}\n`;
+                    report += `Suasana Hati: ${e.mood}\n`;
+                    report += `Mata Pelajaran: ${e.subject}\n`;
+                    report += `Pengirim: ${e.isAnonymous ? 'Anonim' : e.name}\n`;
+                    report += `Isi Surat Refleksi:\n${e.story}\n`;
+                    if(e.teacherNote) report += `Pesan untuk Guru: ${e.teacherNote}\n`;
+                    report += "==================================================\n\n";
+                });
+
+                const blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Laporan_Ampop_Rasa_PPG_${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            showModal(title, message, icon = '✨') {
+                document.getElementById('modalTitle').textContent = title;
+                document.getElementById('modalMessage').textContent = message;
+                document.getElementById('modalIcon').textContent = icon;
+                document.getElementById('customModal').classList.remove('hidden');
+            }
+
+            closeModal() {
+                document.getElementById('customModal').classList.add('hidden');
+            }
+        }
+
+        const app = new AmpopRasaApp();
+    </script>
+</body>
+</html>
